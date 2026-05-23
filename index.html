@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Nexora Inventory Pro</title>
+
+  <!-- SOPORTE PWA NATIVO PARA IPHONE (PANTALLA COMPLETA) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nexora">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fuentes de Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              black: '#050507',
+              dark: '#0a0a0d',
+              card: '#111115',
+              border: '#1b1b22',
+              gray: '#71717a',
+              light: '#f4f4f5',
+              accent: '#3b82f6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #050507;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e1e24;
+      border-radius: 10px;
+    }
+    .safe-bottom {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+    }
+    .iphone-status-padding {
+      /* Padding extra para empujar el contenido debajo de la Isla Dinámica / Notch del iPhone */
+      padding-top: calc(env(safe-area-inset-top) + 20px);
+    }
+  </style>
+</head>
+<body class="text-brand-light antialiased min-h-screen flex flex-col md:flex-row font-sans">
+
+  <!-- NOTIFICACIÓN TIPO TOAST iOS PREMIUM -->
+  <div id="notification" class="fixed top-24 right-4 left-4 md:left-auto md:w-80 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 ease-out flex items-center gap-3 bg-brand-dark/95 backdrop-blur-md border border-brand-border px-4 py-3 rounded-2xl shadow-2xl"> 
+    <div id="notif-icon" class="text-white text-base font-bold">✓</div> 
+    <p id="notif-text" class="text-xs font-semibold tracking-wide"></p> 
+  </div> 
+
+  <!-- BARRA LATERAL IZQUIERDA (SIDEBAR) - VISIBLE EN DESKTOP / IPAD --> 
+  <aside class="hidden md:flex flex-col w-64 bg-brand-dark border-r border-brand-border h-screen sticky top-0 p-5 justify-between flex-shrink-0 z-50"> 
+    <div class="space-y-6"> 
+      
+      <!-- Logo Nexora con la "N" Premium --> 
+      <div class="flex items-center gap-2.5"> 
+        <div class="relative w-10 h-10 flex-shrink-0 bg-gradient-to-br from-zinc-800 to-black rounded-xl border border-brand-border flex items-center justify-center shadow-lg"> 
+          <span class="text-white font-display font-extrabold text-lg select-none">N</span>
+        </div> 
+        <div> 
+          <h1 class="text-sm font-black tracking-widest leading-none font-display text-white">NEXORA</h1> 
+          <p class="text-[8px] text-brand-gray tracking-[1.5px] uppercase font-bold mt-1">SISTEMA PREMIUM</p> 
+        </div> 
+      </div> 
+
+      <!-- Ítems de Navegación --> 
+      <nav class="flex flex-col gap-1.5"> 
+        <button onclick="switchTab('inventory')" id="side-btn-inventory" class="nav-btn active flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 bg-white text-black"> 
+          <span>📦</span> 
+          <span>Inventario</span> 
+        </button> 
+        <button onclick="switchTab('sales')" id="side-btn-sales" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 text-brand-gray hover:text-white hover:bg-brand-border/35"> 
+          <span>📈</span> 
+          <span>Vender</span> 
+        </button> 
+        <button onclick="switchTab('balance')" id="side-btn-balance" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 text-brand-gray hover:text-white hover:bg-brand-border/35">
+          <span>📊</span> 
+          <span>Saldo</span> 
+        </button> 
+      </nav> 
+
+    </div> 
+
+    <!-- Información de Almacenamiento Local de Nexora --> 
+    <div class="space-y-3">
+      <div class="bg-brand-black border border-brand-border p-3 rounded-lg flex items-center gap-2">
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <div class="min-w-0">
+          <p class="text-[7px] text-brand-gray font-bold tracking-widest uppercase">Base de datos</p>
+          <p class="text-[8px] text-white font-semibold tracking-wider uppercase truncate">Almacenamiento Local Activo</p>
+        </div>
+      </div>
+      <div class="border-t border-brand-border pt-3 text-[8px] text-brand-gray font-mono tracking-widest uppercase"> 
+        Nexora OS v6.5 - CLP 
+      </div> 
+    </div>
+  </aside> 
+
+  <!-- CABECERA MÓVIL ULTRA COMPACTA (CON LA "N" Y CORRECTAMENTE EMPUJADA HACIA ABAJO) --> 
+  <header class="md:hidden bg-brand-dark/95 backdrop-blur-md border-b border-brand-border px-4 pb-3 flex items-end justify-between iphone-status-padding z-40 sticky top-0 shadow-lg"> 
+    <div class="flex items-center gap-2 min-w-0 mt-3"> 
+      <!-- Contenedor del logotipo móvil con la N Premium -->
+      <div class="relative w-8 h-8 flex-shrink-0 bg-gradient-to-br from-zinc-800 to-black rounded-lg border border-brand-border flex items-center justify-center shadow-md"> 
+        <span class="text-white font-display font-extrabold text-sm select-none">N</span>
+      </div> 
+      <div class="min-w-0 leading-tight"> 
+        <h1 class="text-[13px] font-black tracking-widest font-display text-white">NEXORA</h1> 
+        <p class="text-[7px] text-brand-gray tracking-[0.5px] uppercase font-bold truncate">TECNOLOGÍA PREMIUM</p> 
+      </div> 
+    </div> 
+    <button id="mobile-add-btn" onclick="openModal()" class="bg-white hover:bg-brand-light active:scale-95 text-black font-black text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg transition-all shadow-md flex-shrink-0 mb-0.5"> 
+      + Registrar
+    </button> 
+  </header> 
+
+  <!-- CONTENIDO PRINCIPAL --> 
+  <main class="flex-grow w-full px-3.5 py-4 md:px-6 overflow-y-auto max-w-5xl mx-auto pb-28 md:pb-6 flex flex-col space-y-4"> 
+
+    <!-- ================= SECCIÓN 1: INVENTARIO ================= --> 
+    <section id="section-inventory" class="space-y-4"> 
+      <div class="flex items-center justify-between"> 
+        <div> 
+          <h2 class="text-sm font-black uppercase tracking-wider font-display">Inventario de Stock</h2> 
+          <p class="text-[8px] text-brand-gray tracking-wider uppercase mt-0.5">Control de existencias físicas en local (CLP)</p> 
+        </div> 
+        <button onclick="openModal()" class="hidden md:block bg-white hover:bg-brand-light active:scale-95 text-black font-extrabold text-xs uppercase tracking-wider px-4 py-2 rounded-lg transition-all shadow-md"> 
+          + Registrar Ítem 
+        </button> 
+      </div> 
+
+      <!-- Tarjetas de métricas rápidas (Ultra Compactas) --> 
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div class="bg-brand-card border border-brand-border p-3 rounded-xl flex items-center justify-between shadow-sm"> 
+          <div>
+            <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Stock Total</div> 
+            <div id="stat-total-stock" class="text-sm font-bold font-display text-white">0</div> 
+          </div>
+          <span class="text-base bg-brand-border/40 p-1.5 rounded-lg">📦</span>
+        </div> 
+        <div class="bg-brand-card border border-brand-border p-3 rounded-xl flex items-center justify-between shadow-sm"> 
+          <div>
+            <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Valor total</div> 
+            <div id="stat-total-value" class="text-xs font-semibold text-white font-display">$0</div> 
+          </div>
+          <span class="text-base bg-brand-border/40 p-1.5 rounded-lg">💰</span>
+        </div> 
+        <div class="bg-brand-card border border-brand-border p-3 rounded-xl flex items-center justify-between shadow-sm"> 
+          <div>
+            <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Alertas</div> 
+            <div id="stat-low-stock" class="text-sm font-bold text-amber-500 font-display">0</div> 
+          </div>
+          <span class="text-base bg-brand-border/40 p-1.5 rounded-lg">⚠️</span>
+        </div> 
+        <div class="bg-brand-card border border-brand-border p-3 rounded-xl flex items-center justify-between shadow-sm"> 
+          <div>
+            <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Categorías</div> 
+            <div id="stat-categories" class="text-sm font-bold text-brand-gray font-display">0</div> 
+          </div>
+          <span class="text-base bg-brand-border/40 p-1.5 rounded-lg">📂</span>
+        </div> 
+      </div> 
+
+      <!-- Filtros e Input de Búsqueda --> 
+      <div class="bg-brand-card border border-brand-border p-2 rounded-xl flex flex-col sm:flex-row gap-2 items-stretch justify-between"> 
+        <div class="relative flex-1"> 
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Buscar dispositivo..." 
+            oninput="renderProducts()" 
+            class="w-full bg-brand-black border border-brand-border rounded-lg pl-3 pr-3 py-1.5 text-[11px] uppercase tracking-wider text-white placeholder-brand-gray focus:outline-none focus:border-white transition-all" 
+          > 
+        </div> 
+        <div class="flex gap-1.5"> 
+          <select id="category-filter" onchange="renderProducts()" class="flex-1 bg-brand-black border border-brand-border rounded-lg px-2 py-1.5 text-[9px] uppercase tracking-wider text-brand-light font-bold focus:outline-none cursor-pointer"> 
+            <option value="Todos">Todas las Categorías</option> 
+            <option value="iPhone">iPhone</option> 
+            <option value="Fundas">Fundas</option> 
+            <option value="Cargadores">Cargadores</option> 
+            <option value="Audífonos">Audífonos</option> 
+            <option value="Cables">Cables</option> 
+            <option value="Protectores">Protectores</option> 
+            <option value="Otros">Otros</option> 
+          </select> 
+          <select id="sort-filter" onchange="renderProducts()" class="flex-1 bg-brand-black border border-brand-border rounded-lg px-2 py-1.5 text-[9px] uppercase tracking-wider text-brand-light font-bold focus:outline-none cursor-pointer"> 
+            <option value="name">Nombre</option> 
+            <option value="stock">Stock</option> 
+            <option value="price">Precio</option> 
+          </select> 
+        </div> 
+      </div> 
+
+      <!-- Listado de Productos --> 
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="product-list"></div> 
+    </section> 
+
+    <!-- ================= SECCIÓN 2: REGISTRO DE VENTAS ================= --> 
+    <section id="section-sales" class="space-y-4 hidden"> 
+      <div> 
+        <h2 class="text-xs font-black uppercase tracking-wider font-display">Registro de Ventas</h2> 
+        <p class="text-[8px] text-brand-gray tracking-wider uppercase mt-0.5">Saca del stock y descuenta en tiempo real (CLP)</p> 
+      </div> 
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4"> 
+        
+        <!-- Panel de Venta Rápida --> 
+        <div class="lg:col-span-1 bg-brand-card border border-brand-border p-4 rounded-xl h-fit space-y-3 shadow-md"> 
+          <h3 class="text-[9px] font-bold uppercase tracking-widest text-brand-gray">Venta Nueva Express</h3> 
+          <div class="space-y-2.5"> 
+            <div> 
+              <label class="block text-[7px] font-bold text-brand-gray uppercase tracking-widest mb-1">Selecciona Producto</label> 
+              <select id="sale-product-select" class="w-full bg-brand-black border border-brand-border rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-white cursor-pointer"> 
+                <!-- Inyectado por JS --> 
+              </select> 
+            </div> 
+            <div> 
+              <label class="block text-[7px] font-bold text-brand-gray uppercase tracking-widest mb-1">Cantidad Vendida</label> 
+              <input type="number" id="sale-qty" min="1" value="1" class="w-full bg-brand-black border border-brand-border rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none font-mono"> 
+            </div> 
+            <button onclick="registerSale()" class="w-full bg-white hover:bg-brand-light text-black font-extrabold text-[10px] uppercase tracking-widest py-2 rounded-lg transition-all shadow-md"> 
+              Registrar Venta ✓ 
+            </button> 
+          </div> 
+        </div> 
+
+        <!-- Lista de Historial de Ventas --> 
+        <div class="lg:col-span-2 bg-brand-card border border-brand-border p-4 rounded-xl flex flex-col space-y-3 shadow-md"> 
+          <div class="flex justify-between items-center"> 
+            <h3 class="text-[9px] font-bold uppercase tracking-widest text-brand-gray font-display">Historial de Transacciones</h3> 
+            <button onclick="clearSalesHistory()" class="text-[8px] text-red-500 hover:underline uppercase tracking-wider font-bold">Limpiar Historial</button> 
+          </div> 
+          
+          <div class="overflow-x-auto w-full"> 
+            <table class="w-full text-left text-[11px]"> 
+              <thead> 
+                <tr class="border-b border-brand-border text-brand-gray uppercase text-[8px] font-bold tracking-widest"> 
+                  <th class="pb-1.5 pr-2">Fecha/Hora</th> 
+                  <th class="pb-1.5 px-2">Producto</th> 
+                  <th class="pb-1.5 px-1 text-center">Cant</th> 
+                  <th class="pb-1.5 px-2 text-right">Precio</th> 
+                  <th class="pb-1.5 pl-2 text-right">Total</th> 
+                </tr> 
+              </thead> 
+              <tbody id="sales-table-body" class="divide-y divide-brand-border/40"> 
+                <!-- Inyectado por JS --> 
+              </tbody> 
+            </table> 
+          </div> 
+          <div id="sales-empty-state" class="hidden text-center py-4 text-brand-gray text-[9px] uppercase tracking-wider font-bold"> 
+            No has registrado ventas en esta sesión. 
+          </div> 
+        </div> 
+
+      </div> 
+    </section> 
+
+    <!-- ================= SECCIÓN 3: BALANCE GENERAL ================= --> 
+    <section id="section-balance" class="space-y-4 hidden"> 
+      <div> 
+        <h2 class="text-xs font-black uppercase tracking-wider font-display">Balance de Rendimiento</h2> 
+        <p class="text-[8px] text-brand-gray tracking-wider uppercase mt-0.5">Resumen financiero y valor neto del negocio en CLP</p> 
+      </div> 
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"> 
+        
+        <!-- Tarjeta de Ingreso Bruto acumulado --> 
+        <div class="bg-brand-card border border-brand-border p-3.5 rounded-xl shadow-sm"> 
+          <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Ingreso de Ventas (Caja)</div> 
+          <div id="bal-total-sales" class="text-sm font-black mt-0.5 text-white font-display">$0</div> 
+          <p class="text-[7px] text-brand-gray mt-0.5">Capital total cobrado</p> 
+        </div> 
+
+        <!-- Costo de Adquisición Proyectado --> 
+        <div class="bg-brand-card border border-brand-border p-3.5 rounded-xl shadow-sm"> 
+          <div class="text-[7px] font-bold text-brand-gray uppercase tracking-wider">Costo de Ventas</div> 
+          <div id="bal-total-cost" class="text-sm font-black mt-0.5 text-brand-gray font-display">$0</div> 
+          <p class="text-[7px] text-brand-gray mt-0.5">Costo de adquisición (65%)</p> 
+        </div> 
+
+        <!-- Utilidad Estimada --> 
+        <div class="bg-[#0c1611]/80 border border-emerald-500/25 p-3.5 rounded-xl shadow-sm"> 
+          <div class="text-[7px] font-bold text-emerald-500 uppercase tracking-wider font-mono">Utilidad Neta Estimada</div> 
+          <div id="bal-total-utility" class="text-sm font-black mt-0.5 text-emerald-400 font-display">$0</div> 
+          <p class="text-[7px] text-emerald-500/80 mt-0.5">Retorno de ganancia real (≈ 35%)</p> 
+        </div> 
+
+      </div> 
+
+      <!-- Resumen de Valorización Física del Negocio --> 
+      <div class="bg-brand-card border border-brand-border p-3.5 rounded-xl space-y-2.5 shadow-sm"> 
+        <h3 class="text-[9px] font-bold uppercase tracking-widest text-brand-gray font-display">Valorización de Activos en Stock</h3> 
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"> 
+          <div class="space-y-0.5"> 
+            <span class="text-brand-gray text-[8px] uppercase tracking-wider block">Activos Líquidos Proyectados</span> 
+            <div id="bal-asset-retail" class="text-xs font-bold font-mono">$0</div> 
+            <p class="text-[10px] text-brand-gray">Ingreso total estimado si vendes el 100% de tu stock</p> 
+          </div> 
+          <div class="space-y-0.5"> 
+            <span class="text-brand-gray text-[8px] uppercase tracking-wider block">Margen Potencial de Retorno (CLP)</span> 
+            <div id="bal-asset-profit" class="text-xs font-bold font-mono text-emerald-400">$0</div> 
+            <p class="text-[10px] text-emerald-500/80 font-semibold">Ganancia potencial neta guardada en estanterías</p> 
+          </div> 
+        </div> 
+      </div> 
+    </section> 
+
+  </main> 
+
+  <!-- BOTÓN FLOTANTE "+" ULTRA ACCESIBLE EN MÓVIL -->
+  <button onclick="openModal()" id="mobile-floating-btn" class="md:hidden fixed bottom-20 right-5 z-45 w-12 h-12 bg-white active:scale-90 text-black font-black text-2xl rounded-full flex items-center justify-center shadow-2xl transition-transform border border-brand-border/40">
+    +
+  </button>
+
+  <!-- BARRA DE NAVEGACIÓN INFERIOR (COMPACTA PARA IPHONE) --> 
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-brand-dark/95 backdrop-blur-md border-t border-brand-border flex justify-around py-2.5 z-45 safe-bottom shadow-xl"> 
+    <button onclick="switchTab('inventory')" id="mob-btn-inventory" class="flex flex-col items-center gap-0.5 text-[8px] font-bold uppercase tracking-widest text-white"> 
+      <span class="text-sm">📦</span> 
+      <span>Stock</span> 
+    </button> 
+    <button onclick="switchTab('sales')" id="mob-btn-sales" class="flex flex-col items-center gap-0.5 text-[8px] font-bold uppercase tracking-widest text-brand-gray"> 
+      <span class="text-sm">📈</span> 
+      <span>Vender</span> 
+    </button> 
+    <button onclick="switchTab('balance')" id="mob-btn-balance" class="flex flex-col items-center gap-0.5 text-[8px] font-bold uppercase tracking-widest text-brand-gray"> 
+      <span class="text-sm">📊</span> 
+      <span>Saldo</span> 
+    </button> 
+  </nav> 
+
+  <!-- MODAL DE REGISTRO (iOS SLIDE-UP COMPACTO) --> 
+  <div id="product-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-3"> 
+    <div class="bg-brand-dark border border-brand-border rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in"> 
+      <div class="px-4 py-2.5 bg-brand-black border-b border-brand-border flex justify-between items-center"> 
+        <h3 id="modal-title" class="text-[9px] font-black uppercase tracking-widest text-white font-display">Nuevo Registro</h3> 
+        <button onclick="closeModal()" class="text-brand-gray hover:text-white text-lg transition-all">×</button> 
+      </div> 
+
+      <form onsubmit="saveProduct(event)" class="p-4 space-y-3"> 
+        <input type="hidden" id="form-id"> 
+        
+        <div> 
+          <label class="block text-[8px] font-bold text-brand-gray uppercase tracking-widest mb-1">Nombre Comercial *</label> 
+          <input type="text" id="form-name" required class="w-full bg-brand-black border border-brand-border rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-750 focus:outline-none focus:border-white uppercase" placeholder="Ej. iPhone 15 Pro Max 256GB"> 
+        </div> 
+
+        <div class="grid grid-cols-2 gap-3"> 
+          <div> 
+            <label class="block text-[8px] font-bold text-brand-gray uppercase tracking-widest mb-1">Categoría</label> 
+            <select id="form-category" class="w-full bg-brand-black border border-brand-border rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-white cursor-pointer"> 
+              <option value="iPhone">iPhone</option> 
+              <option value="Fundas">Fundas</option> 
+              <option value="Cargadores">Cargadores</option> 
+              <option value="Audífonos">Audífonos</option> 
+              <option value="Cables">Cables</option> 
+              <option value="Protectores">Protectores</option> 
+              <option value="Otros">Otros</option> 
+            </select> 
+          </div> 
+          <div> 
+            <label class="block text-[8px] font-bold text-brand-gray uppercase tracking-widest mb-1">Precio ($ CLP)</label> 
+            <input type="number" id="form-price" min="0" required class="w-full bg-brand-black border border-brand-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white font-mono" placeholder="1290000"> 
+          </div> 
+        </div> 
+
+        <div class="grid grid-cols-2 gap-3 bg-brand-black p-3 rounded-xl border border-brand-border"> 
+          <div> 
+            <label class="block text-[8px] font-bold text-brand-gray uppercase tracking-widest mb-0.5">Stock Actual</label> 
+            <input type="number" id="form-stock" min="0" required class="w-full bg-brand-dark border border-brand-border rounded-md px-2 py-1 text-xs text-white focus:outline-none font-mono" placeholder="0"> 
+          </div> 
+          <div> 
+            <label class="block text-[8px] font-bold text-brand-gray uppercase tracking-widest mb-0.5">Stock Mínimo</label> 
+            <input type="number" id="form-min" min="0" required class="w-full bg-brand-dark border border-brand-border rounded-md px-2 py-1 text-xs text-white focus:outline-none font-mono" placeholder="5"> 
+          </div> 
+        </div> 
+
+        <div class="pt-3 flex gap-2 border-t border-brand-border"> 
+          <button type="button" onclick="closeModal()" class="flex-1 bg-brand-black hover:bg-zinc-900 border border-brand-border text-brand-gray hover:text-white font-bold text-[9px] uppercase tracking-wider py-1.5 rounded-lg transition-all">Cancelar</button> 
+          <button type="submit" class="flex-1 bg-white hover:bg-brand-light text-black font-extrabold text-[9px] uppercase tracking-widest py-1.5 rounded-lg transition-all shadow-md">Confirmar</button> 
+        </div> 
+      </form> 
+    </div> 
+  </div> 
+
+  <!-- SCRIPT LÓGICO DE ACCESO LOCAL DIRECTO --> 
+  <script> 
+    // Catálogo inicial local de demostración
+    const defaultProducts = [ 
+      { id: 1, name: "iPhone 15 Pro Max 256GB", category: "iPhone", stock: 3, minStock: 5, price: 1299000 }, 
+      { id: 2, name: "iPhone 15 Pro 128GB", category: "iPhone", stock: 5, minStock: 4, price: 999000 }, 
+      { id: 3, name: "iPhone 15 128GB", category: "iPhone", stock: 8, minStock: 6, price: 799000 }, 
+      { id: 4, name: "Funda MagSafe Silicona", category: "Fundas", stock: 15, minStock: 10, price: 49000 }, 
+      { id: 8, name: "Cargador USB-C 20W", category: "Cargadores", stock: 12, minStock: 10, price: 24900 }, 
+      { id: 9, name: "AirPods Pro 2da Gen", category: "Audífonos", stock: 2, minStock: 5, price: 239000 } 
+    ]; 
+
+    const ICONS = { 
+      iPhone: "📱", 
+      Fundas: "🛡️", 
+      Cargadores: "⚡", 
+      Audífonos: "🎧", 
+      Cables: "🔌", 
+      Protectores: "🔲", 
+      Otros: "📦" 
+    }; 
+
+    // Almacenamiento local directo
+    let products = JSON.parse(localStorage.getItem('nexora_inventory_clp_v1')) || defaultProducts; 
+    let sales = JSON.parse(localStorage.getItem('nexora_sales_clp_v1')) || []; 
+
+    function saveToStorage() { 
+      localStorage.setItem('nexora_inventory_clp_v1', JSON.stringify(products)); 
+      localStorage.setItem('nexora_sales_clp_v1', JSON.stringify(sales)); 
+      updateStats(); 
+      updateSalesHistory(); 
+      populateProductSelect(); 
+    } 
+
+    function formatCLP(value) { 
+      return new Intl.NumberFormat('es-CL', { 
+        style: 'currency', 
+        currency: 'CLP', 
+        minimumFractionDigits: 0 
+      }).format(value); 
+    } 
+
+    function switchTab(tabId) { 
+      document.getElementById('section-inventory').classList.add('hidden'); 
+      document.getElementById('section-sales').classList.add('hidden'); 
+      document.getElementById('section-balance').classList.add('hidden'); 
+      document.getElementById('section-' + tabId).classList.remove('hidden'); 
+
+      // Botón flotante se maneja en base a la pestaña activa
+      const floatBtn = document.getElementById('mobile-floating-btn');
+      if(tabId === 'inventory') { 
+        document.getElementById('mobile-add-btn').classList.remove('invisible'); 
+        if (floatBtn) floatBtn.classList.remove('hidden');
+      } else { 
+        document.getElementById('mobile-add-btn').classList.add('invisible'); 
+        if (floatBtn) floatBtn.classList.add('hidden');
+      } 
+
+      document.querySelectorAll('.nav-btn').forEach(btn => { 
+        btn.classList.remove('bg-white', 'text-black'); 
+        btn.classList.add('text-brand-gray', 'hover:text-white', 'hover:bg-brand-border/35'); 
+      }); 
+      const activeSideBtn = document.getElementById('side-btn-' + tabId); 
+      if(activeSideBtn) { 
+        activeSideBtn.classList.remove('text-brand-gray', 'hover:text-white', 'hover:bg-brand-border/35'); 
+        activeSideBtn.classList.add('bg-white', 'text-black'); 
+      } 
+
+      const mobTabs = ['inventory', 'sales', 'balance']; 
+      mobTabs.forEach(id => { 
+        const mobBtn = document.getElementById('mob-btn-' + id); 
+        if(mobBtn) { 
+          if(id === tabId) { 
+            mobBtn.classList.remove('text-brand-gray'); 
+            mobBtn.classList.add('text-white'); 
+          } else { 
+            mobBtn.classList.remove('text-white'); 
+            mobBtn.classList.add('text-brand-gray'); 
+          } 
+        } 
+      }); 
+    } 
+
+    function showNotification(message, type = "success") { 
+      const notif = document.getElementById("notification"); 
+      const text = document.getElementById("notif-text"); 
+      const icon = document.getElementById("notif-icon"); 
+      
+      text.innerText = message; 
+      icon.innerHTML = type === "error" ? "✕" : "✓"; 
+      notif.style.borderLeft = type === "error" ? "4px solid #ef4444" : "4px solid #ffffff"; 
+      
+      notif.classList.remove("translate-y-[-100px]", "opacity-0"); 
+      notif.classList.add("translate-y-0", "opacity-100"); 
+      
+      setTimeout(() => { 
+        notif.classList.remove("translate-y-0", "opacity-100"); 
+        notif.classList.add("translate-y-[-100px]", "opacity-0"); 
+      }, 3000); 
+    } 
+
+    function updateStats() { 
+      const totalStock = products.reduce((acc, curr) => acc + Number(curr.stock), 0); 
+      const totalValue = products.reduce((acc, curr) => acc + (Number(curr.stock) * Number(curr.price)), 0); 
+      const lowStockCount = products.filter(p => p.stock < p.minStock).length; 
+      
+      document.getElementById("stat-total-stock").innerText = totalStock.toLocaleString(); 
+      document.getElementById("stat-total-value").innerText = formatCLP(totalValue); 
+      document.getElementById("stat-low-stock").innerText = lowStockCount; 
+      
+      const distinctCategories = [...new Set(products.map(p => p.category))].length; 
+      document.getElementById("stat-categories").innerText = distinctCategories; 
+
+      const totalSalesRevenue = sales.reduce((acc, curr) => acc + Number(curr.total), 0); 
+      const costOfSales = totalSalesRevenue * 0.65; 
+      const actualProfit = totalSalesRevenue - costOfSales; 
+
+      document.getElementById("bal-total-sales").innerText = formatCLP(totalSalesRevenue); 
+      document.getElementById("bal-total-cost").innerText = formatCLP(Math.round(costOfSales)); 
+      document.getElementById("bal-total-utility").innerText = formatCLP(Math.round(actualProfit)); 
+
+      document.getElementById("bal-asset-retail").innerText = formatCLP(totalValue); 
+      document.getElementById("bal-asset-profit").innerText = formatCLP(Math.round(totalValue * 0.35)); 
+    } 
+
+    function populateProductSelect() { 
+      const select = document.getElementById("sale-product-select"); 
+      if(!select) return; 
+      select.innerHTML = ""; 
+      
+      products.forEach(p => { 
+        if(p.stock > 0) { 
+          const option = document.createElement("option"); 
+          option.value = p.id; 
+          option.innerText = `${p.name} - (${formatCLP(p.price)} | Disp: ${p.stock})`; 
+          select.appendChild(option); 
+        } 
+      }); 
+
+      if(select.children.length === 0) { 
+        select.innerHTML = `<option value="">-- Sin productos disponibles --</option>`; 
+      } 
+    } 
+
+    function registerSale() { 
+      const select = document.getElementById("sale-product-select"); 
+      const qtyInput = document.getElementById("sale-qty"); 
+      
+      const productId = Number(select.value); 
+      const qty = Number(qtyInput.value) || 1; 
+
+      if(!productId) { 
+        showNotification("No hay productos con stock", "error"); 
+        return; 
+      } 
+
+      const product = products.find(p => p.id === productId); 
+
+      if(!product) return; 
+
+      if(product.stock < qty) { 
+        showNotification("Stock insuficiente", "error"); 
+        return; 
+      } 
+
+      product.stock -= qty; 
+      const sale = { 
+        id: Date.now(), 
+        date: new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) + " " + new Date().toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}), 
+        productName: product.name, 
+        qty: qty, 
+        price: product.price, 
+        total: product.price * qty 
+      }; 
+
+      sales.unshift(sale); 
+      saveToStorage(); 
+      renderProducts(); 
+      qtyInput.value = 1; 
+      showNotification(`Venta de "${product.name}" registrada ✓`); 
+    } 
+
+    function clearSalesHistory() { 
+      if(confirm("¿Eliminar todas las ventas registradas?")) { 
+        sales = []; 
+        saveToStorage(); 
+        showNotification("Historial de ventas borrado", "error"); 
+      } 
+    } 
+
+    function updateSalesHistory() { 
+      const tbody = document.getElementById("sales-table-body"); 
+      const emptyState = document.getElementById("sales-empty-state"); 
+      
+      if(!tbody) return; 
+
+      tbody.innerHTML = ""; 
+
+      if(sales.length === 0) { 
+        emptyState.classList.remove("hidden"); 
+        return; 
+      } else { 
+        emptyState.classList.add("hidden"); 
+      } 
+
+      sales.forEach(sale => { 
+        const row = ` 
+          <tr class="hover:bg-brand-border/10"> 
+            <td class="py-2 pr-2 font-mono text-[9px] text-brand-gray">${sale.date}</td> 
+            <td class="py-2 px-2 font-bold uppercase">${sale.productName}</td> 
+            <td class="py-2 px-1 text-center font-mono font-bold">${sale.qty}</td> 
+            <td class="py-2 px-2 text-right font-mono text-brand-gray">${formatCLP(sale.price)}</td> 
+            <td class="py-2 pl-2 text-right font-mono font-black text-white">${formatCLP(sale.total)}</td> 
+          </tr> 
+        `; 
+        tbody.innerHTML += row; 
+      }); 
+    } 
+
+    function renderProducts() { 
+      const listContainer = document.getElementById("product-list"); 
+      const searchQuery = document.getElementById("search-input").value.toLowerCase(); 
+      const selectedCategory = document.getElementById("category-filter").value; 
+      const sortBy = document.getElementById("sort-filter").value; 
+
+      let filtered = products.filter(p => { 
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery); 
+        const matchesCategory = selectedCategory === "Todos" || p.category === selectedCategory; 
+        return matchesSearch && matchesCategory; 
+      }); 
+
+      filtered.sort((a, b) => { 
+        if (sortBy === "name") return a.name.localeCompare(b.name); 
+        if (sortBy === "stock") return a.stock - b.stock; 
+        if (sortBy === "price") return b.price - a.price; 
+        return 0; 
+      }); 
+
+      listContainer.innerHTML = ""; 
+
+      if (filtered.length === 0) { 
+        listContainer.innerHTML = ` 
+          <div class="text-center py-8 text-brand-gray col-span-full"> 
+            <p class="text-[10px] uppercase tracking-widest font-bold">Sin Coincidencias</p> 
+          </div> 
+        `; 
+        return; 
+      } 
+
+      filtered.forEach(p => { 
+        const isOutOfStock = p.stock === 0; 
+        const isLowStock = p.stock < p.minStock && !isOutOfStock; 
+        
+        let statusBadge = `<span class="text-[8px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">En Stock</span>`; 
+        let borderClass = "border-brand-border"; 
+
+        if (isOutOfStock) { 
+          statusBadge = `<span class="text-[8px] font-extrabold uppercase tracking-wider text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">Agotado</span>`; 
+          borderClass = "border-red-500/25 bg-red-500/[0.02]"; 
+        } else if (isLowStock) { 
+          statusBadge = `<span class="text-[8px] font-extrabold uppercase tracking-wider text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Stock Bajo</span>`; 
+          borderClass = "border-amber-500/20 bg-amber-500/[0.01]"; 
+        } 
+
+        const productRow = ` 
+          <div class="bg-brand-card border border-brand-border rounded-xl p-3 flex flex-col gap-2 transition-all shadow-sm"> 
+            <div class="flex items-center gap-2.5"> 
+              <div class="w-8 h-8 bg-brand-black rounded-lg border border-brand-border flex items-center justify-center text-base flex-shrink-0"> 
+                ${ICONS[p.category] || "📦"} 
+              </div> 
+              <div class="flex-grow min-w-0"> 
+                <h4 class="font-bold text-white text-[11px] md:text-xs tracking-wide uppercase truncate leading-none">${p.name}</h4> 
+                <div class="text-[9px] text-brand-gray mt-1 flex flex-wrap items-center gap-1"> 
+                  <span class="bg-brand-black px-1.5 py-0.5 rounded text-[7px] font-bold uppercase">${p.category}</span> 
+                  <span>•</span> 
+                  <span>Precio: <strong class="text-white">${formatCLP(p.price)}</strong></span> 
+                </div> 
+              </div> 
+            </div> 
+
+            <div class="flex items-center justify-between border-t border-brand-border/40 pt-2"> 
+              <div class="flex items-center gap-2"> 
+                ${statusBadge} 
+                <div class="flex items-center gap-1"> 
+                  <button onclick="adjustStock(${p.id}, -1)" class="w-6 h-6 bg-brand-black border border-brand-border rounded-md flex items-center justify-center font-bold text-xs active:bg-zinc-800">-</button> 
+                  <span class="w-5 text-center font-bold font-mono text-xs text-white">${p.stock}</span> 
+                  <button onclick="adjustStock(${p.id}, 1)" class="w-6 h-6 bg-brand-black border border-brand-border rounded-md flex items-center justify-center font-bold text-xs active:bg-zinc-800">+</button> 
+                </div> 
+              </div> 
+
+              <div class="flex gap-1"> 
+                <button onclick="editProduct(${p.id})" class="bg-brand-black border border-brand-border text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Editar</button> 
+                <button onclick="deleteProduct(${p.id})" class="bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-1 rounded-md text-xs">✕</button> 
+              </div> 
+            </div> 
+          </div> 
+        `; 
+        listContainer.innerHTML += productRow; 
+      }); 
+    } 
+
+    function adjustStock(id, delta) { 
+      products = products.map(p => { 
+        if (p.id === id) { 
+          const newStock = Math.max(0, p.stock + delta); 
+          return { ...p, stock: newStock }; 
+        } 
+        return p; 
+      }); 
+      saveToStorage(); 
+      renderProducts(); 
+    } 
+
+    function deleteProduct(id) { 
+      const p = products.find(prod => prod.id === id); 
+      if (confirm(`¿Eliminar definitivamente "${p.name}" del catálogo?`)) { 
+        products = products.filter(prod => prod.id !== id); 
+        saveToStorage(); 
+        renderProducts(); 
+        showNotification("Producto eliminado ✓", "error"); 
+      } 
+    } 
+
+    function openModal() { 
+      document.getElementById("form-id").value = ""; 
+      document.getElementById("form-name").value = ""; 
+      document.getElementById("form-category").value = "iPhone"; 
+      document.getElementById("form-price").value = ""; 
+      document.getElementById("form-stock").value = ""; 
+      document.getElementById("form-min").value = "5"; 
+      document.getElementById("modal-title").innerText = "Nuevo Registro"; 
+      document.getElementById("product-modal").classList.remove("hidden"); 
+    } 
+
+    function editProduct(id) { 
+      const p = products.find(prod => prod.id === id); 
+      document.getElementById("form-id").value = p.id; 
+      document.getElementById("form-name").value = p.name; 
+      document.getElementById("form-category").value = p.category; 
+      document.getElementById("form-price").value = p.price; 
+      document.getElementById("form-stock").value = p.stock; 
+      document.getElementById("form-min").value = p.minStock; 
+      document.getElementById("modal-title").innerText = "Modificar Registro"; 
+      document.getElementById("product-modal").classList.remove("hidden"); 
+    } 
+
+    function closeModal() { 
+      document.getElementById("product-modal").classList.add("hidden"); 
+    } 
+
+    function saveProduct(e) { 
+      e.preventDefault(); 
+      const id = document.getElementById("form-id").value; 
+      const name = document.getElementById("form-name").value.trim(); 
+      const category = document.getElementById("form-category").value; 
+      const price = Number(document.getElementById("form-price").value) || 0; 
+      const stock = Number(document.getElementById("form-stock").value) || 0; 
+      const minStock = Number(document.getElementById("form-min").value) || 0; 
+
+      if (!name) return; 
+
+      if (id) { 
+        products = products.map(p => p.id == id ? { ...p, name, category, price, stock, minStock } : p); 
+        showNotification("Registro actualizado ✓"); 
+      } else { 
+        const newProduct = { id: Date.now(), name, category, price, stock, minStock }; 
+        products.push(newProduct); 
+        showNotification("Nuevo registro agregado ✓"); 
+      } 
+
+      closeModal(); 
+      saveToStorage(); 
+      renderProducts(); 
+    } 
+
+    // Inicialización del sistema instantánea sin esperas de red
+    window.addEventListener('DOMContentLoaded', () => {
+      updateStats(); 
+      renderProducts(); 
+      updateSalesHistory(); 
+      populateProductSelect(); 
+    });
+  </script> 
+</body>
+</html>
+
+```
